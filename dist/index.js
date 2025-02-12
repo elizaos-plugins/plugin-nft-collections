@@ -24,9 +24,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../node_modules/retry/lib/retry_operation.js
+// ../../node_modules/p-retry/node_modules/retry/lib/retry_operation.js
 var require_retry_operation = __commonJS({
-  "../../node_modules/retry/lib/retry_operation.js"(exports, module) {
+  "../../node_modules/p-retry/node_modules/retry/lib/retry_operation.js"(exports, module) {
     function RetryOperation(timeouts, options) {
       if (typeof options === "boolean") {
         options = { forever: options };
@@ -159,9 +159,9 @@ var require_retry_operation = __commonJS({
   }
 });
 
-// ../../node_modules/retry/lib/retry.js
+// ../../node_modules/p-retry/node_modules/retry/lib/retry.js
 var require_retry = __commonJS({
-  "../../node_modules/retry/lib/retry.js"(exports) {
+  "../../node_modules/p-retry/node_modules/retry/lib/retry.js"(exports) {
     var RetryOperation = require_retry_operation();
     exports.operation = function(options) {
       var timeouts = exports.timeouts(options);
@@ -245,9 +245,9 @@ var require_retry = __commonJS({
   }
 });
 
-// ../../node_modules/retry/index.js
+// ../../node_modules/p-retry/node_modules/retry/index.js
 var require_retry2 = __commonJS({
-  "../../node_modules/retry/index.js"(exports, module) {
+  "../../node_modules/p-retry/node_modules/retry/index.js"(exports, module) {
     module.exports = require_retry();
   }
 });
@@ -1080,6 +1080,9 @@ var quotelessJson = (obj) => {
   return json.replace(/"([^"]+)":/g, "$1:");
 };
 var ZodError = class _ZodError extends Error {
+  get errors() {
+    return this.issues;
+  }
   constructor(issues) {
     super();
     this.issues = [];
@@ -1097,9 +1100,6 @@ var ZodError = class _ZodError extends Error {
     }
     this.name = "ZodError";
     this.issues = issues;
-  }
-  get errors() {
-    return this.issues;
   }
   format(_mapper) {
     const mapper = _mapper || function(issue) {
@@ -1311,8 +1311,11 @@ function addIssueToContext(ctx, issueData) {
     path: ctx.path,
     errorMaps: [
       ctx.common.contextualErrorMap,
+      // contextual error map is first priority
       ctx.schemaErrorMap,
+      // then schema-bound map if available
       overrideMap,
+      // then global override map
       overrideMap === errorMap ? void 0 : errorMap
       // then global default map
     ].filter((x) => !!x)
@@ -1448,13 +1451,13 @@ function processCreateParams(params) {
   if (errorMap2)
     return { errorMap: errorMap2, description };
   const customMap = (iss, ctx) => {
-    var _a, _b;
+    var _a2, _b;
     const { message } = params;
     if (iss.code === "invalid_enum_value") {
       return { message: message !== null && message !== void 0 ? message : ctx.defaultError };
     }
     if (typeof ctx.data === "undefined") {
-      return { message: (_a = message !== null && message !== void 0 ? message : required_error) !== null && _a !== void 0 ? _a : ctx.defaultError };
+      return { message: (_a2 = message !== null && message !== void 0 ? message : required_error) !== null && _a2 !== void 0 ? _a2 : ctx.defaultError };
     }
     if (iss.code !== "invalid_type")
       return { message: ctx.defaultError };
@@ -1463,34 +1466,6 @@ function processCreateParams(params) {
   return { errorMap: customMap, description };
 }
 var ZodType = class {
-  constructor(def) {
-    this.spa = this.safeParseAsync;
-    this._def = def;
-    this.parse = this.parse.bind(this);
-    this.safeParse = this.safeParse.bind(this);
-    this.parseAsync = this.parseAsync.bind(this);
-    this.safeParseAsync = this.safeParseAsync.bind(this);
-    this.spa = this.spa.bind(this);
-    this.refine = this.refine.bind(this);
-    this.refinement = this.refinement.bind(this);
-    this.superRefine = this.superRefine.bind(this);
-    this.optional = this.optional.bind(this);
-    this.nullable = this.nullable.bind(this);
-    this.nullish = this.nullish.bind(this);
-    this.array = this.array.bind(this);
-    this.promise = this.promise.bind(this);
-    this.or = this.or.bind(this);
-    this.and = this.and.bind(this);
-    this.transform = this.transform.bind(this);
-    this.brand = this.brand.bind(this);
-    this.default = this.default.bind(this);
-    this.catch = this.catch.bind(this);
-    this.describe = this.describe.bind(this);
-    this.pipe = this.pipe.bind(this);
-    this.readonly = this.readonly.bind(this);
-    this.isNullable = this.isNullable.bind(this);
-    this.isOptional = this.isOptional.bind(this);
-  }
   get description() {
     return this._def.description;
   }
@@ -1538,11 +1513,11 @@ var ZodType = class {
     throw result.error;
   }
   safeParse(data, params) {
-    var _a;
+    var _a2;
     const ctx = {
       common: {
         issues: [],
-        async: (_a = params === null || params === void 0 ? void 0 : params.async) !== null && _a !== void 0 ? _a : false,
+        async: (_a2 = params === null || params === void 0 ? void 0 : params.async) !== null && _a2 !== void 0 ? _a2 : false,
         contextualErrorMap: params === null || params === void 0 ? void 0 : params.errorMap
       },
       path: (params === null || params === void 0 ? void 0 : params.path) || [],
@@ -1553,6 +1528,43 @@ var ZodType = class {
     };
     const result = this._parseSync({ data, path: ctx.path, parent: ctx });
     return handleResult(ctx, result);
+  }
+  "~validate"(data) {
+    var _a2, _b;
+    const ctx = {
+      common: {
+        issues: [],
+        async: !!this["~standard"].async
+      },
+      path: [],
+      schemaErrorMap: this._def.errorMap,
+      parent: null,
+      data,
+      parsedType: getParsedType(data)
+    };
+    if (!this["~standard"].async) {
+      try {
+        const result = this._parseSync({ data, path: [], parent: ctx });
+        return isValid(result) ? {
+          value: result.value
+        } : {
+          issues: ctx.common.issues
+        };
+      } catch (err) {
+        if ((_b = (_a2 = err === null || err === void 0 ? void 0 : err.message) === null || _a2 === void 0 ? void 0 : _a2.toLowerCase()) === null || _b === void 0 ? void 0 : _b.includes("encountered")) {
+          this["~standard"].async = true;
+        }
+        ctx.common = {
+          issues: [],
+          async: true
+        };
+      }
+    }
+    return this._parseAsync({ data, path: [], parent: ctx }).then((result) => isValid(result) ? {
+      value: result.value
+    } : {
+      issues: ctx.common.issues
+    });
   }
   async parseAsync(data, params) {
     const result = await this.safeParseAsync(data, params);
@@ -1631,6 +1643,39 @@ var ZodType = class {
   superRefine(refinement) {
     return this._refinement(refinement);
   }
+  constructor(def) {
+    this.spa = this.safeParseAsync;
+    this._def = def;
+    this.parse = this.parse.bind(this);
+    this.safeParse = this.safeParse.bind(this);
+    this.parseAsync = this.parseAsync.bind(this);
+    this.safeParseAsync = this.safeParseAsync.bind(this);
+    this.spa = this.spa.bind(this);
+    this.refine = this.refine.bind(this);
+    this.refinement = this.refinement.bind(this);
+    this.superRefine = this.superRefine.bind(this);
+    this.optional = this.optional.bind(this);
+    this.nullable = this.nullable.bind(this);
+    this.nullish = this.nullish.bind(this);
+    this.array = this.array.bind(this);
+    this.promise = this.promise.bind(this);
+    this.or = this.or.bind(this);
+    this.and = this.and.bind(this);
+    this.transform = this.transform.bind(this);
+    this.brand = this.brand.bind(this);
+    this.default = this.default.bind(this);
+    this.catch = this.catch.bind(this);
+    this.describe = this.describe.bind(this);
+    this.pipe = this.pipe.bind(this);
+    this.readonly = this.readonly.bind(this);
+    this.isNullable = this.isNullable.bind(this);
+    this.isOptional = this.isOptional.bind(this);
+    this["~standard"] = {
+      version: 1,
+      vendor: "zod",
+      validate: (data) => this["~validate"](data)
+    };
+  }
   optional() {
     return ZodOptional.create(this, this._def);
   }
@@ -1641,7 +1686,7 @@ var ZodType = class {
     return this.nullable().optional();
   }
   array() {
-    return ZodArray.create(this, this._def);
+    return ZodArray.create(this);
   }
   promise() {
     return ZodPromise.create(this, this._def);
@@ -1707,16 +1752,20 @@ var ZodType = class {
 };
 var cuidRegex = /^c[^\s-]{8,}$/i;
 var cuid2Regex = /^[0-9a-z]+$/;
-var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/;
+var ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
 var uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
 var nanoidRegex = /^[a-z0-9_-]{21}$/i;
+var jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/;
 var durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/;
 var emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 var _emojiRegex = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`;
 var emojiRegex;
 var ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-var ipv6Regex = /^(([a-f0-9]{1,4}:){7}|::([a-f0-9]{1,4}:){0,6}|([a-f0-9]{1,4}:){1}:([a-f0-9]{1,4}:){0,5}|([a-f0-9]{1,4}:){2}:([a-f0-9]{1,4}:){0,4}|([a-f0-9]{1,4}:){3}:([a-f0-9]{1,4}:){0,3}|([a-f0-9]{1,4}:){4}:([a-f0-9]{1,4}:){0,2}|([a-f0-9]{1,4}:){5}:([a-f0-9]{1,4}:){0,1})([a-f0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$/;
+var ipv4CidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/;
+var ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+var ipv6CidrRegex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
 var base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+var base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/;
 var dateRegexSource = `((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))`;
 var dateRegex = new RegExp(`^${dateRegexSource}$`);
 function timeRegexSource(args) {
@@ -1745,6 +1794,33 @@ function isValidIP(ip, version) {
     return true;
   }
   if ((version === "v6" || !version) && ipv6Regex.test(ip)) {
+    return true;
+  }
+  return false;
+}
+function isValidJWT(jwt, alg) {
+  if (!jwtRegex.test(jwt))
+    return false;
+  try {
+    const [header] = jwt.split(".");
+    const base64 = header.replace(/-/g, "+").replace(/_/g, "/").padEnd(header.length + (4 - header.length % 4) % 4, "=");
+    const decoded = JSON.parse(atob(base64));
+    if (typeof decoded !== "object" || decoded === null)
+      return false;
+    if (!decoded.typ || !decoded.alg)
+      return false;
+    if (alg && decoded.alg !== alg)
+      return false;
+    return true;
+  } catch (_a2) {
+    return false;
+  }
+}
+function isValidCidr(ip, version) {
+  if ((version === "v4" || !version) && ipv4CidrRegex.test(ip)) {
+    return true;
+  }
+  if ((version === "v6" || !version) && ipv6CidrRegex.test(ip)) {
     return true;
   }
   return false;
@@ -1895,7 +1971,7 @@ var ZodString = class _ZodString extends ZodType {
       } else if (check.kind === "url") {
         try {
           new URL(input.data);
-        } catch (_a) {
+        } catch (_a2) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "url",
@@ -2005,11 +2081,41 @@ var ZodString = class _ZodString extends ZodType {
           });
           status.dirty();
         }
+      } else if (check.kind === "jwt") {
+        if (!isValidJWT(input.data, check.alg)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "jwt",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
+      } else if (check.kind === "cidr") {
+        if (!isValidCidr(input.data, check.version)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "cidr",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
       } else if (check.kind === "base64") {
         if (!base64Regex.test(input.data)) {
           ctx = this._getOrReturnCtx(input, ctx);
           addIssueToContext(ctx, {
             validation: "base64",
+            code: ZodIssueCode.invalid_string,
+            message: check.message
+          });
+          status.dirty();
+        }
+      } else if (check.kind === "base64url") {
+        if (!base64urlRegex.test(input.data)) {
+          ctx = this._getOrReturnCtx(input, ctx);
+          addIssueToContext(ctx, {
+            validation: "base64url",
             code: ZodIssueCode.invalid_string,
             message: check.message
           });
@@ -2061,11 +2167,23 @@ var ZodString = class _ZodString extends ZodType {
   base64(message) {
     return this._addCheck({ kind: "base64", ...errorUtil.errToObj(message) });
   }
+  base64url(message) {
+    return this._addCheck({
+      kind: "base64url",
+      ...errorUtil.errToObj(message)
+    });
+  }
+  jwt(options) {
+    return this._addCheck({ kind: "jwt", ...errorUtil.errToObj(options) });
+  }
   ip(options) {
     return this._addCheck({ kind: "ip", ...errorUtil.errToObj(options) });
   }
+  cidr(options) {
+    return this._addCheck({ kind: "cidr", ...errorUtil.errToObj(options) });
+  }
   datetime(options) {
-    var _a, _b;
+    var _a2, _b;
     if (typeof options === "string") {
       return this._addCheck({
         kind: "datetime",
@@ -2078,7 +2196,7 @@ var ZodString = class _ZodString extends ZodType {
     return this._addCheck({
       kind: "datetime",
       precision: typeof (options === null || options === void 0 ? void 0 : options.precision) === "undefined" ? null : options === null || options === void 0 ? void 0 : options.precision,
-      offset: (_a = options === null || options === void 0 ? void 0 : options.offset) !== null && _a !== void 0 ? _a : false,
+      offset: (_a2 = options === null || options === void 0 ? void 0 : options.offset) !== null && _a2 !== void 0 ? _a2 : false,
       local: (_b = options === null || options === void 0 ? void 0 : options.local) !== null && _b !== void 0 ? _b : false,
       ...errorUtil.errToObj(options === null || options === void 0 ? void 0 : options.message)
     });
@@ -2154,8 +2272,7 @@ var ZodString = class _ZodString extends ZodType {
     });
   }
   /**
-   * @deprecated Use z.string().min(1) instead.
-   * @see {@link ZodString.min}
+   * Equivalent to `.min(1)`
    */
   nonempty(message) {
     return this.min(1, errorUtil.errToObj(message));
@@ -2217,8 +2334,14 @@ var ZodString = class _ZodString extends ZodType {
   get isIP() {
     return !!this._def.checks.find((ch) => ch.kind === "ip");
   }
+  get isCIDR() {
+    return !!this._def.checks.find((ch) => ch.kind === "cidr");
+  }
   get isBase64() {
     return !!this._def.checks.find((ch) => ch.kind === "base64");
+  }
+  get isBase64url() {
+    return !!this._def.checks.find((ch) => ch.kind === "base64url");
   }
   get minLength() {
     let min = null;
@@ -2242,11 +2365,11 @@ var ZodString = class _ZodString extends ZodType {
   }
 };
 ZodString.create = (params) => {
-  var _a;
+  var _a2;
   return new ZodString({
     checks: [],
     typeName: ZodFirstPartyTypeKind.ZodString,
-    coerce: (_a = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a !== void 0 ? _a : false,
+    coerce: (_a2 = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a2 !== void 0 ? _a2 : false,
     ...processCreateParams(params)
   });
 };
@@ -2497,17 +2620,15 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
   }
   _parse(input) {
     if (this._def.coerce) {
-      input.data = BigInt(input.data);
+      try {
+        input.data = BigInt(input.data);
+      } catch (_a2) {
+        return this._getInvalidInput(input);
+      }
     }
     const parsedType = this._getType(input);
     if (parsedType !== ZodParsedType.bigint) {
-      const ctx2 = this._getOrReturnCtx(input);
-      addIssueToContext(ctx2, {
-        code: ZodIssueCode.invalid_type,
-        expected: ZodParsedType.bigint,
-        received: ctx2.parsedType
-      });
-      return INVALID;
+      return this._getInvalidInput(input);
     }
     let ctx = void 0;
     const status = new ParseStatus();
@@ -2553,6 +2674,15 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
       }
     }
     return { status: status.value, value: input.data };
+  }
+  _getInvalidInput(input) {
+    const ctx = this._getOrReturnCtx(input);
+    addIssueToContext(ctx, {
+      code: ZodIssueCode.invalid_type,
+      expected: ZodParsedType.bigint,
+      received: ctx.parsedType
+    });
+    return INVALID;
   }
   gte(value, message) {
     return this.setLimit("min", value, true, errorUtil.toString(message));
@@ -2647,11 +2777,11 @@ var ZodBigInt = class _ZodBigInt extends ZodType {
   }
 };
 ZodBigInt.create = (params) => {
-  var _a;
+  var _a2;
   return new ZodBigInt({
     checks: [],
     typeName: ZodFirstPartyTypeKind.ZodBigInt,
-    coerce: (_a = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a !== void 0 ? _a : false,
+    coerce: (_a2 = params === null || params === void 0 ? void 0 : params.coerce) !== null && _a2 !== void 0 ? _a2 : false,
     ...processCreateParams(params)
   });
 };
@@ -3157,8 +3287,8 @@ var ZodObject = class _ZodObject extends ZodType {
       unknownKeys: "strict",
       ...message !== void 0 ? {
         errorMap: (issue, ctx) => {
-          var _a, _b, _c, _d;
-          const defaultError = (_c = (_b = (_a = this._def).errorMap) === null || _b === void 0 ? void 0 : _b.call(_a, issue, ctx).message) !== null && _c !== void 0 ? _c : ctx.defaultError;
+          var _a2, _b, _c, _d;
+          const defaultError = (_c = (_b = (_a2 = this._def).errorMap) === null || _b === void 0 ? void 0 : _b.call(_a2, issue, ctx).message) !== null && _c !== void 0 ? _c : ctx.defaultError;
           if (issue.code === "unrecognized_keys")
             return {
               message: (_d = errorUtil.errToObj(message).message) !== null && _d !== void 0 ? _d : defaultError
@@ -4619,10 +4749,10 @@ ZodReadonly.create = (type, params) => {
 function custom(check, params = {}, fatal) {
   if (check)
     return ZodAny.create().superRefine((data, ctx) => {
-      var _a, _b;
+      var _a2, _b;
       if (!check(data)) {
         const p = typeof params === "function" ? params(data) : typeof params === "string" ? { message: params } : params;
-        const _fatal = (_b = (_a = p.fatal) !== null && _a !== void 0 ? _a : fatal) !== null && _b !== void 0 ? _b : true;
+        const _fatal = (_b = (_a2 = p.fatal) !== null && _a2 !== void 0 ? _a2 : fatal) !== null && _b !== void 0 ? _b : true;
         const p2 = typeof p === "string" ? { message: p } : p;
         ctx.addIssue({ code: "custom", ...p2, fatal: _fatal });
       }
@@ -5076,23 +5206,26 @@ var ReservoirService = class {
       }
       const results = await Promise.all(promises);
       const collections = results.flatMap((data) => data.collections);
-      const mappedCollections = collections.slice(0, limit).map((collection) => ({
-        address: collection.id,
-        name: collection.name,
-        symbol: collection.symbol,
-        description: collection.description,
-        imageUrl: collection.image,
-        externalUrl: collection.externalUrl,
-        twitterUsername: collection.twitterUsername,
-        discordUrl: collection.discordUrl,
-        verified: collection.openseaVerificationStatus === "verified",
-        floorPrice: collection.floorAsk?.price?.amount?.native || 0,
-        volume24h: collection.volume24h || 0,
-        marketCap: collection.marketCap || 0,
-        totalSupply: collection.tokenCount || 0,
-        holders: collection.ownerCount || 0,
-        lastUpdate: (/* @__PURE__ */ new Date()).toISOString()
-      }));
+      const mappedCollections = collections.slice(0, limit).map((collection) => {
+        var _a2, _b, _c;
+        return {
+          address: collection.id,
+          name: collection.name,
+          symbol: collection.symbol,
+          description: collection.description,
+          imageUrl: collection.image,
+          externalUrl: collection.externalUrl,
+          twitterUsername: collection.twitterUsername,
+          discordUrl: collection.discordUrl,
+          verified: collection.openseaVerificationStatus === "verified",
+          floorPrice: ((_c = (_b = (_a2 = collection.floorAsk) == null ? void 0 : _a2.price) == null ? void 0 : _b.amount) == null ? void 0 : _c.native) || 0,
+          volume24h: collection.volume24h || 0,
+          marketCap: collection.marketCap || 0,
+          totalSupply: collection.tokenCount || 0,
+          holders: collection.ownerCount || 0,
+          lastUpdate: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      });
       endOperation();
       return mappedCollections;
     } catch (error) {
@@ -5162,6 +5295,7 @@ var emitWarning = (msg, type, code, fn) => {
 };
 var AC = globalThis.AbortController;
 var AS = globalThis.AbortSignal;
+var _a;
 if (typeof AC === "undefined") {
   AS = class AbortSignal {
     onabort;
@@ -5178,6 +5312,7 @@ if (typeof AC === "undefined") {
     }
     signal = new AS();
     abort(reason) {
+      var _a2, _b;
       if (this.signal.aborted)
         return;
       this.signal.reason = reason;
@@ -5185,10 +5320,10 @@ if (typeof AC === "undefined") {
       for (const fn of this.signal._onabort) {
         fn(reason);
       }
-      this.signal.onabort?.(reason);
+      (_b = (_a2 = this.signal).onabort) == null ? void 0 : _b.call(_a2, reason);
     }
   };
-  let printACPolyfillWarning = PROCESS.env?.LRU_CACHE_IGNORE_AC_WARNING !== "1";
+  let printACPolyfillWarning = ((_a = PROCESS.env) == null ? void 0 : _a.LRU_CACHE_IGNORE_AC_WARNING) !== "1";
   const warnACPolyfill = () => {
     if (!printACPolyfillWarning)
       return;
@@ -5937,6 +6072,7 @@ var LRUCache = class _LRUCache {
    * `cache.delete(key)`. `undefined` is never stored in the cache.
    */
   set(k, v, setOptions = {}) {
+    var _a2, _b, _c, _d, _e;
     if (v === void 0) {
       this.delete(k);
       return this;
@@ -5975,18 +6111,18 @@ var LRUCache = class _LRUCache {
           const { __staleWhileFetching: s } = oldVal;
           if (s !== void 0 && !noDisposeOnSet) {
             if (this.#hasDispose) {
-              this.#dispose?.(s, k, "set");
+              (_a2 = this.#dispose) == null ? void 0 : _a2.call(this, s, k, "set");
             }
             if (this.#hasDisposeAfter) {
-              this.#disposed?.push([s, k, "set"]);
+              (_b = this.#disposed) == null ? void 0 : _b.push([s, k, "set"]);
             }
           }
         } else if (!noDisposeOnSet) {
           if (this.#hasDispose) {
-            this.#dispose?.(oldVal, k, "set");
+            (_c = this.#dispose) == null ? void 0 : _c.call(this, oldVal, k, "set");
           }
           if (this.#hasDisposeAfter) {
-            this.#disposed?.push([oldVal, k, "set"]);
+            (_d = this.#disposed) == null ? void 0 : _d.push([oldVal, k, "set"]);
           }
         }
         this.#removeItemSize(index);
@@ -6015,8 +6151,8 @@ var LRUCache = class _LRUCache {
     if (!noDisposeOnSet && this.#hasDisposeAfter && this.#disposed) {
       const dt = this.#disposed;
       let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
+      while (task = dt == null ? void 0 : dt.shift()) {
+        (_e = this.#disposeAfter) == null ? void 0 : _e.call(this, ...task);
       }
     }
     return this;
@@ -6026,6 +6162,7 @@ var LRUCache = class _LRUCache {
    * `undefined` if cache is empty.
    */
   pop() {
+    var _a2;
     try {
       while (this.#size) {
         const val = this.#valList[this.#head];
@@ -6042,13 +6179,14 @@ var LRUCache = class _LRUCache {
       if (this.#hasDisposeAfter && this.#disposed) {
         const dt = this.#disposed;
         let task;
-        while (task = dt?.shift()) {
-          this.#disposeAfter?.(...task);
+        while (task = dt == null ? void 0 : dt.shift()) {
+          (_a2 = this.#disposeAfter) == null ? void 0 : _a2.call(this, ...task);
         }
       }
     }
   }
   #evict(free) {
+    var _a2, _b;
     const head = this.#head;
     const k = this.#keyList[head];
     const v = this.#valList[head];
@@ -6056,10 +6194,10 @@ var LRUCache = class _LRUCache {
       v.__abortController.abort(new Error("evicted"));
     } else if (this.#hasDispose || this.#hasDisposeAfter) {
       if (this.#hasDispose) {
-        this.#dispose?.(v, k, "evict");
+        (_a2 = this.#dispose) == null ? void 0 : _a2.call(this, v, k, "evict");
       }
       if (this.#hasDisposeAfter) {
-        this.#disposed?.push([v, k, "evict"]);
+        (_b = this.#disposed) == null ? void 0 : _b.push([v, k, "evict"]);
       }
     }
     this.#removeItemSize(head);
@@ -6143,7 +6281,7 @@ var LRUCache = class _LRUCache {
     }
     const ac = new AC();
     const { signal } = options;
-    signal?.addEventListener("abort", () => ac.abort(signal.reason), {
+    signal == null ? void 0 : signal.addEventListener("abort", () => ac.abort(signal.reason), {
       signal: ac.signal
     });
     const fetchOpts = {
@@ -6214,7 +6352,8 @@ var LRUCache = class _LRUCache {
       }
     };
     const pcall = (res, rej) => {
-      const fmp = this.#fetchMethod?.(k, v, fetchOpts);
+      var _a2;
+      const fmp = (_a2 = this.#fetchMethod) == null ? void 0 : _a2.call(this, k, v, fetchOpts);
       if (fmp && fmp instanceof Promise) {
         fmp.then((v2) => res(v2 === void 0 ? void 0 : v2), rej);
       }
@@ -6429,6 +6568,7 @@ var LRUCache = class _LRUCache {
     return this.#delete(k, "delete");
   }
   #delete(k, reason) {
+    var _a2, _b, _c, _d;
     let deleted = false;
     if (this.#size !== 0) {
       const index = this.#keyMap.get(k);
@@ -6443,10 +6583,10 @@ var LRUCache = class _LRUCache {
             v.__abortController.abort(new Error("deleted"));
           } else if (this.#hasDispose || this.#hasDisposeAfter) {
             if (this.#hasDispose) {
-              this.#dispose?.(v, k, reason);
+              (_a2 = this.#dispose) == null ? void 0 : _a2.call(this, v, k, reason);
             }
             if (this.#hasDisposeAfter) {
-              this.#disposed?.push([v, k, reason]);
+              (_b = this.#disposed) == null ? void 0 : _b.push([v, k, reason]);
             }
           }
           this.#keyMap.delete(k);
@@ -6467,11 +6607,11 @@ var LRUCache = class _LRUCache {
         }
       }
     }
-    if (this.#hasDisposeAfter && this.#disposed?.length) {
+    if (this.#hasDisposeAfter && ((_c = this.#disposed) == null ? void 0 : _c.length)) {
       const dt = this.#disposed;
       let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
+      while (task = dt == null ? void 0 : dt.shift()) {
+        (_d = this.#disposeAfter) == null ? void 0 : _d.call(this, ...task);
       }
     }
     return deleted;
@@ -6483,6 +6623,7 @@ var LRUCache = class _LRUCache {
     return this.#clear("delete");
   }
   #clear(reason) {
+    var _a2, _b, _c;
     for (const index of this.#rindexes({ allowStale: true })) {
       const v = this.#valList[index];
       if (this.#isBackgroundFetch(v)) {
@@ -6490,10 +6631,10 @@ var LRUCache = class _LRUCache {
       } else {
         const k = this.#keyList[index];
         if (this.#hasDispose) {
-          this.#dispose?.(v, k, reason);
+          (_a2 = this.#dispose) == null ? void 0 : _a2.call(this, v, k, reason);
         }
         if (this.#hasDisposeAfter) {
-          this.#disposed?.push([v, k, reason]);
+          (_b = this.#disposed) == null ? void 0 : _b.push([v, k, reason]);
         }
       }
     }
@@ -6515,8 +6656,8 @@ var LRUCache = class _LRUCache {
     if (this.#hasDisposeAfter && this.#disposed) {
       const dt = this.#disposed;
       let task;
-      while (task = dt?.shift()) {
-        this.#disposeAfter?.(...task);
+      while (task = dt == null ? void 0 : dt.shift()) {
+        (_c = this.#disposeAfter) == null ? void 0 : _c.call(this, ...task);
       }
     }
   }
@@ -6617,6 +6758,7 @@ var RateLimiter = class {
     }
   }
   async executeWithRetry(key, operation, points = 1) {
+    var _a2, _b;
     let lastError = null;
     let retries = 0;
     while (retries <= this.maxRetries) {
@@ -6626,9 +6768,9 @@ var RateLimiter = class {
       } catch (error) {
         lastError = error;
         retries++;
-        if (error instanceof Error && error.message?.includes("Rate limit exceeded")) {
+        if (error instanceof Error && ((_a2 = error.message) == null ? void 0 : _a2.includes("Rate limit exceeded"))) {
           const retryAfter = Number.parseInt(
-            error.message.match(/\d+/)?.[0] || "1",
+            ((_b = error.message.match(/\d+/)) == null ? void 0 : _b[0]) || "1",
             10
           );
           await new Promise(
@@ -6644,14 +6786,14 @@ var RateLimiter = class {
       }
     }
     throw new Error(
-      `Operation failed after ${retries} retries. Last error: ${lastError?.message}`
+      `Operation failed after ${retries} retries. Last error: ${lastError == null ? void 0 : lastError.message}`
     );
   }
   async cleanup() {
   }
   async getRemainingPoints(key) {
     const res = await this.limiter.get(key);
-    return res?.remainingPoints ?? 0;
+    return (res == null ? void 0 : res.remainingPoints) ?? 0;
   }
   async reset(key) {
     await this.limiter.delete(key);
@@ -6749,11 +6891,12 @@ var config = {
   // Batch size for collection requests
 };
 function createNFTCollectionsPlugin() {
-  const cacheManager = config.caching?.enabled ? new MemoryCacheManager({
+  var _a2, _b, _c;
+  const cacheManager = ((_a2 = config.caching) == null ? void 0 : _a2.enabled) ? new MemoryCacheManager({
     ttl: config.caching.ttl,
     maxSize: config.caching.maxSize
   }) : null;
-  const rateLimiter = config.security?.rateLimit?.enabled ? new RateLimiter({
+  const rateLimiter = ((_c = (_b = config.security) == null ? void 0 : _b.rateLimit) == null ? void 0 : _c.enabled) ? new RateLimiter({
     maxRequests: config.security.rateLimit.maxRequests,
     windowMs: config.security.rateLimit.windowMs
   }) : null;
