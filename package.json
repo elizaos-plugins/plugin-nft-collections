@@ -1,5 +1,5 @@
 {
-    "name": "@elizaos/plugin-nft-collections",
+    "name": "@elizaos-plugins/plugin-nft-collections",
     "version": "0.1.9",
     "description": "NFT collections plugin for Eliza",
     "type": "module",
@@ -12,7 +12,6 @@
         "format": "prettier --write src/**/*.ts"
     },
     "dependencies": {
-        "@elizaos/core": "workspace:*",
         "@elizaos/plugin-evm": "workspace:*",
         "axios": "^1.6.7",
         "rate-limiter-flexible": "^5.0.4"
@@ -26,8 +25,5 @@
         "tsup": "^8.0.1",
         "typescript": "^5.3.3",
         "vitest": "^3.0.0"
-    },
-    "peerDependencies": {
-        "@elizaos/core": "workspace:*"
     }
 }
