@@ -25,5 +25,124 @@
         "tsup": "^8.0.1",
         "typescript": "^5.3.3",
         "vitest": "^3.0.0"
+    },
+    "agentConfig": {
+        "pluginType": "elizaos:client:1.0.0",
+        "pluginParameters": {
+            "RESERVOIR_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for accessing Reservoir API, required for fetching NFT collection data and market stats.",
+                "optional": false
+            },
+            "NANSEN_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Nansen, optional for enhanced market intelligence features.",
+                "optional": true
+            },
+            "DUNE_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Dune Analytics, optional for accessing advanced analytics and market data.",
+                "optional": true
+            },
+            "ALCHEMY_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Alchemy, optional for various blockchain and NFT data fetching functionalities.",
+                "optional": true
+            },
+            "CHAINBASE_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Chainbase, optional for accessing additional blockchain data and services.",
+                "optional": true
+            },
+            "NFTSCAN_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for NFTScan, optional for enhanced NFT scanning and data retrieval capabilities.",
+                "optional": true
+            },
+            "TWITTER_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Twitter, optional for fetching Twitter engagement metrics and social analytics.",
+                "optional": true
+            },
+            "DISCORD_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Discord, optional for accessing Discord community stats and analytics.",
+                "optional": true
+            },
+            "TELEGRAM_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for Telegram, optional for Telegram group analytics and social engagement data.",
+                "optional": true
+            },
+            "GRAPHQL_ENDPOINT": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Endpoint for GraphQL queries, optional for advanced data fetching and real-time updates.",
+                "optional": true
+            },
+            "GRAPHQL_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for GraphQL services, optional for secure access to GraphQL queries and subscriptions.",
+                "optional": true
+            },
+            "WS_ENDPOINT": {
+                "type": "string",
+                "minLength": 1,
+                "description": "WebSocket endpoint, optional for subscribing to real-time NFT collection updates and notifications.",
+                "optional": true
+            },
+            "WS_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for WebSocket services, optional for authenticated access to WebSocket channels and data streams.",
+                "optional": true
+            },
+            "IPFS_GATEWAY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "IPFS gateway URL, optional for accessing IPFS content and metadata for NFTs.",
+                "optional": true
+            },
+            "IPFS_API_KEY": {
+                "type": "string",
+                "minLength": 1,
+                "description": "API key for IPFS gateway, optional for authenticated operations like uploading or pinning content.",
+                "optional": true
+            },
+            "IPFS_FALLBACK_GATEWAYS": {
+                "type": "string",
+                "minLength": 1,
+                "description": "List of fallback IPFS gateways, optional for redundancy and improved access to IPFS content.",
+                "optional": true
+            },
+            "WEBHOOK_SECRET": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Secret for securing webhook endpoints, optional for verifying incoming webhook requests.",
+                "optional": true
+            },
+            "WEBHOOK_RETRY_COUNT": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Number of retry attempts for webhook delivery, optional for customizing webhook reliability.",
+                "optional": true
+            },
+            "WEBHOOK_TIMEOUT": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Timeout in milliseconds for webhook requests, optional for controlling webhook request duration.",
+                "optional": true
+            }
+        }
     }
 }
